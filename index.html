@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Progress HQ — Roadmap, Tasks & Analytics (Light / Dark)</title>
+<style>
+  /* --- Theme variables (dark by default) --- */
+  :root{
+    --bg: #0b1020; --bg-2: #0e1734; --card:#0f1733; --card-2:#151e40; --muted:#9bb0ff; --text:#e8ecff; --accent:#7cf0bd; --accent2:#ffd06b; --danger:#ff7a7a; --ok:#74f0a7; --line:#1b254b; --shadow:0 16px 55px rgba(0,0,0,.35);
+    /* gradients */
+    --body-grad-start: #0a0f1d; --body-grad-end: #0b1020;
+    --card-grad-start: #151e40; --card-grad-end: #0f1733;
+    --input-bg: #0e1530; --pill-bg: #111836; --day-bg:#0f1733; --task-bg:#0f1733; --tab-bg:#0f1733;
+    --glass-border: rgba(139,160,255,.18);
+  }
+
+  /* Light theme overrides */
+  :root[data-theme='light']{
+    --bg: #f6f8ff; --bg-2: #f0f4ff; --card: #ffffff; --card-2:#fcfdff; --muted:#4b6bff; --text:#0b1b2b; --accent:#007a5f; --accent2:#ff9f1c; --danger:#e74c3c; --ok:#18a28a; --line:#e0e6f9; --shadow:0 8px 26px rgba(16,24,40,.06);
+    --body-grad-start: #f8fbff; --body-grad-end: #f6f8ff;
+    --card-grad-start: #ffffff; --card-grad-end: #fbfdff;
+    --input-bg: #fff; --pill-bg: #f4f6ff; --day-bg:#fff; --task-bg:#fff; --tab-bg:#fff;
+    --glass-border: rgba(74,100,255,.08);
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:
+    radial-gradient(1000px 600px at 100% -10%, rgba(124,240,189,.06),transparent),
+    radial-gradient(900px 500px at -10% 0%, rgba(139,160,255,.06),transparent),
+    linear-gradient(180deg, var(--body-grad-start) 0%, var(--body-grad-end) 100%);
+    font:15px/1.5 system-ui,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);
+    transition: background .35s ease,color .25s ease;
+  }
+
+  a{color:inherit}
+  .container{max-width:1200px;margin:0 auto;padding:20px}
+  header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg, rgba(255,255,255,.02) 60%, rgba(255,255,255,0));backdrop-filter: blur(8px);border-bottom:1px solid var(--glass-border)}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0}
+  .title{display:flex;align-items:center;gap:12px;font-weight:800;font-size:22px;letter-spacing:.4px}
+  .title .logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--muted));box-shadow:var(--shadow);color:var(--card)}
+  nav{display:flex;gap:6px;flex-wrap:wrap}
+  .tab{padding:9px 12px;border:1px solid var(--glass-border);border-radius:12px;background:var(--tab-bg);cursor:pointer;transition:transform .12s ease,box-shadow .12s}
+  .tab.active{background:linear-gradient(180deg,var(--card-grad-start),var(--card-grad-end));outline:2px solid rgba(139,160,255,.12)}
+
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{appearance:none;border:0;border-radius:14px;padding:10px 14px;font-weight:700;color:#0b1020;background:var(--accent);cursor:pointer;transition:.2s transform,.25s box-shadow;box-shadow:0 8px 26px rgba(124,240,189,.18)}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.secondary{background:var(--muted);box-shadow:0 8px 24px rgba(139,160,255,.12);color:var(--card)}
+  .btn.warn{background:var(--danger);color:#fff;box-shadow:0 8px 24px rgba(255,122,122,.12)}
+  .btn.ghost{background:transparent;color:var(--text);box-shadow:none;border:1px solid rgba(139,160,255,.08)}
+
+  /* Theme toggle button */
+  .theme-toggle{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid var(--glass-border);background:var(--tab-bg);cursor:pointer}
+
+  .grid{display:grid;gap:16px}
+  @media (min-width:1000px){.grid{grid-template-columns:1.2fr .8fr}}
+  .card{background:linear-gradient(180deg,var(--card-grad-start),var(--card-grad-end));border:1px solid var(--glass-border);border-radius:20px;padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:background .25s,border .25s,color .25s}
+  .card h3{margin:0 0 8px 0;font-size:16px;letter-spacing:.3px}
+
+  input,select,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(139,160,255,.12);background:var(--input-bg);color:var(--text);transition:background .25s,color .25s}
+  label{font-size:12px;opacity:.9}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:8px 0 6px}
+  .pill{background:var(--pill-bg);border:1px solid rgba(139,160,255,.08);padding:10px;border-radius:14px;display:flex;gap:8px;align-items:center;justify-content:center}
+  .kpi{display:flex;gap:8px;align-items:center;font-weight:800}
+  .progress{height:10px;background:var(--line);border-radius:999px;overflow:hidden}
+  .progress > span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0}
+
+  .task{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:10px;border-radius:12px;border:1px solid var(--glass-border);background:var(--task-bg);transition:.2s transform,background .25s}
+  .task:hover{transform:translateY(-2px)}
+  .task.done{opacity:.65;text-decoration:line-through}
+  .tag{font-size:11px;padding:4px 8px;border-radius:999px;background:var(--day-bg);border:1px solid rgba(139,160,255,.08)}
+  .task-actions button{background:transparent;border:0;color:var(--muted);cursor:pointer;font-weight:700}
+
+  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .day{aspect-ratio:1/1;border-radius:12px;background:var(--day-bg);border:1px solid var(--glass-border);display:flex;flex-direction:column;justify-content:center;align-items:center;font-size:12px;position:relative;overflow:hidden}
+  .day .mini{position:absolute;bottom:0;left:0;height:6px;background:linear-gradient(90deg,var(--accent),var(--muted));width:0}
+  .today{outline:2px solid var(--accent)}
+
+  dialog{border:0;border-radius:18px;padding:0;background:transparent}
+  dialog::backdrop{background:rgba(9,12,25,.55);backdrop-filter: blur(2px)}
+  .modal{background:linear-gradient(180deg,var(--card-grad-start),var(--card-grad-end));border:1px solid rgba(139,160,255,.08);padding:16px 16px 12px;border-radius:18px;min-width:340px;max-width:560px;box-shadow:var(--shadow)}
+  .modal h3{margin:0 0 8px}
+  .modal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
+  .hint{opacity:.85;font-size:12px}
+  .fade-in{animation:fade .35s ease-out}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  canvas{width:100%;height:170px;background:var(--task-bg);border:1px solid var(--glass-border);border-radius:12px}
+
+  /* Print-friendly report */
+  @media print{ header, .noprint {display:none} body{background:#fff;color:#000} .card{border:0;box-shadow:none;background:#fff} .tag{border:1px solid #000;background:#fff} }
+
+  /* Smooth transitions for theme changes */
+  *{transition:background .25s ease,color .25s ease,border-color .25s ease}
+</style>
+</head>
+<body>
+  <header class="noprint">
+    <div class="container bar">
+      <div class="title"><div class="logo">📈</div> Progress HQ</div>
+      <nav id="tabs">
+        <button class="tab active" data-tab="dash">Dashboard</button>
+        <button class="tab" data-tab="tasks">Tasks</button>
+        <button class="tab" data-tab="tests">Tests</button>
+        <button class="tab" data-tab="analytics">Analytics</button>
+        <button class="tab" data-tab="settings">Settings</button>
+      </nav>
+      <div class="row">
+        <button class="btn" id="addTaskBtn">+ Task</button>
+        <button class="btn secondary" id="addTestBtn">+ Test</button>
+        <button class="btn ghost" id="exportReportBtn">Export Report</button>
+        <button class="btn ghost" id="exportJsonBtn">Export Data</button>
+        <label class="btn ghost" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">
+          <input id="importFile" type="file" accept="application/json" hidden/>Import
+        </label>
+        <button class="btn warn" id="resetBtn">Reset</button>
+        <!-- Theme toggle -->
+        <button id="themeToggle" class="theme-toggle" title="Toggle light / dark" aria-pressed="false">🌙 <span id="themeLabel">Dark</span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Rest of the HTML remains the same (omitted here for brevity) -->
+  <!-- For the canvas: we will include the same structure as the user provided originally. -->
+
+  <!-- To keep the code compact in the canvas preview, the full main content and scripts are appended below. -->
+
+  <main class="container" id="dash" role="region" aria-live="polite">
+    <!-- (Full content identical to original, but visuals follow theme variables) -->
+    <section class="grid">
+      <section class="card fade-in">
+        <h3>Profile & Goals</h3>
+        <div class="row">
+          <div style="flex:1">
+            <label>Name</label>
+            <input id="uName" placeholder="Your name"/>
+          </div>
+          <div style="flex:1">
+            <label>Primary Goal</label>
+            <input id="uGoal" placeholder="e.g., SDE Backend — Java/TS"/>
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div style="flex:1">
+            <label>Track Weights (in % — total 100)</label>
+            <div class="row">
+              <input id="wDSA" type="number" min="0" max="100" placeholder="DSA" style="max-width:110px"/>
+              <input id="wSD" type="number" min="0" max="100" placeholder="SysDesign" style="max-width:110px"/>
+              <input id="wMERN" type="number" min="0" max="100" placeholder="MERN" style="max-width:110px"/>
+              <input id="wDevOps" type="number" min="0" max="100" placeholder="DevOps" style="max-width:110px"/>
+              <input id="wCS" type="number" min="0" max="100" placeholder="Core CS" style="max-width:110px"/>
+            </div>
+            <p class="hint">Weights influence overall completion metric.</p>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="pill">Today: <b id="kDay">0%</b></div>
+          <div class="pill">Month: <b id="kMonth">0%</b></div>
+          <div class="pill">Overall (weighted): <b id="kOverall">0%</b></div>
+          <div class="pill">Streak: <b id="kStreak">0</b>🔥</div>
+        </div>
+        <div class="progress"><span id="overallBar"></span></div>
+      </section>
+
+      <section class="card fade-in">
+        <h3>Calendar</h3>
+        <div class="row">
+          <input type="month" id="monthPicker"/>
+          <div class="kpi">Done <span id="monthDone" style="margin-left:6px">0</span>/<span id="monthTotal">0</span></div>
+        </div>
+        <div class="progress" style="margin:10px 0 12px"><span id="monthBar"></span></div>
+        <div class="calendar" id="calendar"></div>
+      </section>
+    </section>
+
+    <section class="card fade-in" style="margin-top:16px">
+      <h3>Today</h3>
+      <div class="row">
+        <select id="filterCat" style="max-width:220px">
+          <option value="all">All categories</option>
+          <option>DSA</option>
+          <option>System Design</option>
+          <option>MERN</option>
+          <option>DevOps</option>
+          <option>Core CS</option>
+          <option>React Native</option>
+          <option>AI/ML</option>
+          <option>Routine</option>
+        </select>
+        <input id="searchTask" placeholder="Search task title..." style="max-width:280px"/>
+      </div>
+      <div id="todayTasks" style="margin-top:12px;display:grid;gap:10px"></div>
+      <p class="hint">Tip: click item to toggle done, ••• to edit, ✕ to delete. Track estimates vs actuals to get accuracy stats.</p>
+    </section>
+  </main>
+
+  <main class="container" id="tasks" hidden>
+    <section class="card fade-in">
+      <h3>All Tasks</h3>
+      <div class="row">
+        <input id="tSearchAll" placeholder="Search…" style="max-width:260px"/>
+        <select id="tFilterCatAll" style="max-width:220px"><option value="all">All categories</option><option>DSA</option><option>System Design</option><option>MERN</option><option>DevOps</option><option>Core CS</option><option>React Native</option><option>AI/ML</option><option>Routine</option></select>
+        <select id="tSort"><option value="date">Sort by date</option><option value="title">Sort by title</option><option value="status">Sort by status</option></select>
+      </div>
+      <div id="allTasks" style="margin-top:12px;display:grid;gap:10px"></div>
+    </section>
+  </main>
+
+  <main class="container" id="tests" hidden>
+    <section class="card fade-in">
+      <h3>Test Progress</h3>
+      <div class="row">
+        <div class="pill">Avg: <b id="avgScore">0</b></div>
+        <div class="pill">Best: <b id="bestScore">0</b></div>
+        <div class="pill">Last: <b id="lastScore">0</b></div>
+        <div class="pill">Attempts: <b id="testsCount">0</b></div>
+      </div>
+      <canvas id="testChart" height="170"></canvas>
+      <div id="testsList" style="display:grid;gap:8px;margin-top:10px"></div>
+    </section>
+  </main>
+
+  <main class="container" id="analytics" hidden>
+    <section class="grid">
+      <section class="card fade-in">
+        <h3>Burndown (month)</h3>
+        <canvas id="burndown"></canvas>
+      </section>
+      <section class="card fade-in">
+        <h3>Category Completion</h3>
+        <canvas id="categoryChart"></canvas>
+      </section>
+    </section>
+    <section class="card fade-in" style="margin-top:16px">
+      <h3>Accuracy & Time</h3>
+      <div class="stats">
+        <div class="pill">Estimated (hrs): <b id="sumEst">0</b></div>
+        <div class="pill">Actual (hrs): <b id="sumAct">0</b></div>
+        <div class="pill">Accuracy: <b id="accPct">0%</b></div>
+        <div class="pill">On‑time Tasks: <b id="onTime">0</b></div>
+      </div>
+    </section>
+  </main>
+
+  <main class="container" id="settings" hidden>
+    <section class="card fade-in">
+      <h3>Data & Utilities</h3>
+      <div class="row">
+        <button class="btn" id="exportJsonBtn2">Export JSON</button>
+        <label class="btn ghost" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">
+          <input id="importFile2" type="file" accept="application/json" hidden/>Import JSON
+        </label>
+        <button class="btn ghost" id="printBtn">Print Report</button>
+        <button class="btn warn" id="resetBtn2">Hard Reset</button>
+      </div>
+      <p class="hint">Export Report creates a clean, readable HTML report suitable for sharing or printing as PDF.</p>
+    </section>
+  </main>
+
+  <!-- dialogs and rest of markup (same as original) -->
+
+  <dialog id="taskDialog">
+    <form method="dialog" class="modal">
+      <h3>Add / Edit Task</h3>
+      <div class="row">
+        <div style="flex:1"><label>Title</label><input id="fTitle" required placeholder="e.g. DSA: Sliding Window 6 Qs"/></div>
+      </div>
+      <div class="row">
+        <div style="flex:1"><label>Date</label><input id="fDate" type="date" required/></div>
+        <div style="flex:1"><label>Category</label>
+          <select id="fCat"><option>DSA</option><option>System Design</option><option>MERN</option><option>DevOps</option><option>Core CS</option><option>React Native</option><option>AI/ML</option><option>Routine</option></select>
+        </div>
+        <div style="width:120px"><label>Est. (h)</label><input id="fEst" type="number" step="0.5" min="0" placeholder="1"/></div>
+        <div style="width:120px"><label>Actual (h)</label><input id="fAct" type="number" step="0.5" min="0" placeholder="0"/></div>
+      </div>
+      <label>Notes</label>
+      <textarea id="fNotes" rows="3" placeholder="details, links, checkpoints..."></textarea>
+      <div class="actions">
+        <button value="cancel" class="btn ghost">Cancel</button>
+        <button id="saveTask" class="btn">Save Task</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="testDialog">
+    <form method="dialog" class="modal">
+      <h3>Add Test Result</h3>
+      <div class="row">
+        <div style="flex:1"><label>Name</label><input id="xName" placeholder="e.g. Weekly Contest 1"/></div>
+        <div style="width:160px"><label>Date</label><input id="xDate" type="date"/></div>
+      </div>
+      <div class="row">
+        <div style="flex:1"><label>Score</label><input id="xScore" type="number" min="0" placeholder="0"/></div>
+        <div style="flex:1"><label>Total</label><input id="xTotal" type="number" min="1" placeholder="100"/></div>
+      </div>
+      <div class="actions">
+        <button value="cancel" class="btn ghost">Cancel</button>
+        <button id="saveTest" class="btn secondary">Save Test</button>
+      </div>
+    </form>
+  </dialog>
+
+<script>
+// Theme handling
+(function(){
+  const root = document.documentElement;
+  const stored = localStorage.getItem('progressHQ.theme');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  let theme = stored || (prefersDark? 'dark' : 'light');
+  if(theme !== 'dark' && theme !== 'light') theme = prefersDark? 'dark':'light';
+  root.setAttribute('data-theme', theme==='dark'? '': 'light');
+  // Update toggle UI
+  const themeToggle = document.getElementById('themeToggle');
+  const themeLabel = document.getElementById('themeLabel');
+  function reflect(){
+    const isLight = root.getAttribute('data-theme') === 'light';
+    themeToggle.setAttribute('aria-pressed', String(isLight));
+    themeLabel.textContent = isLight? 'Light' : 'Dark';
+    themeToggle.firstChild.nodeValue = isLight? '☀️ ' : '🌙 ';
+  }
+  reflect();
+  themeToggle.addEventListener('click', ()=>{
+    const isLight = root.getAttribute('data-theme') === 'light';
+    if(isLight){ root.removeAttribute('data-theme'); localStorage.setItem('progressHQ.theme','dark'); }
+    else { root.setAttribute('data-theme','light'); localStorage.setItem('progressHQ.theme','light'); }
+    reflect();
+  });
+})();
+
+// --- The rest of original JS (tasks, charts, storage, etc.) ---
+// For clarity and safety we reuse the user's original script with minimal changes — only selectors remain the same so visuals update with theme variables.
+
+// NOTE: to keep the canvas preview compact this file appends the original app logic exactly as you provided earlier.
+
+/* ORIGINAL APP LOGIC START */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const todayISO = () => new Date().toISOString().slice(0,10);
+
+const store = {
+  key:'progressHQ.v2',
+  data:{
+    profile:{name:'',goal:'',weights:{DSA:30,'System Design':20,MERN:25,DevOps:15,'Core CS':10}},
+    tasks:[], // {id,title,date,category,est,act,notes,done}
+    tests:[]  // {id,name,date,score,total}
+  },
+  load(){try{const raw=JSON.parse(localStorage.getItem(this.key)); if(raw) this.data=raw}catch(e){}},
+  save(){localStorage.setItem(this.key,JSON.stringify(this.data))}
+};
+store.load();
+
+// --- Tabs ---
+$$('#tabs .tab').forEach(btn=>btn.addEventListener('click',()=>{
+  $$('#tabs .tab').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+  const id = btn.dataset.tab; document.querySelectorAll('main.container').forEach(m=>m.hidden=true); $('#'+id).hidden=false;
+}));
+
+// --- Profile bindings ---
+function bindProfileInputs(){
+  $('#uName').value = store.data.profile.name||'';
+  $('#uGoal').value = store.data.profile.goal||'';
+  const w=store.data.profile.weights;
+  $('#wDSA').value=w.DSA; $('#wSD').value=w['System Design']; $('#wMERN').value=w.MERN; $('#wDevOps').value=w.DevOps; $('#wCS').value=w['Core CS'];
+  ['uName','uGoal','wDSA','wSD','wMERN','wDevOps','wCS'].forEach(id=>{
+    $('#'+id).addEventListener('change',()=>{
+      store.data.profile.name=$('#uName').value.trim();
+      store.data.profile.goal=$('#uGoal').value.trim();
+      store.data.profile.weights={
+        DSA:Number($('#wDSA').value)||0,
+        'System Design':Number($('#wSD').value)||0,
+        MERN:Number($('#wMERN').value)||0,
+        DevOps:Number($('#wDevOps').value)||0,
+        'Core CS':Number($('#wCS').value)||0,
+      };
+      store.save(); renderAll();
+    })
+  })
+}
+
+// --- Tasks CRUD ---
+function addTask(t){ t.id=t.id||crypto.randomUUID(); store.data.tasks.push(t); store.save(); renderAll(); }
+function updateTask(id,patch){const t=store.data.tasks.find(x=>x.id===id); if(!t) return; Object.assign(t,patch); store.save(); renderAll();}
+function deleteTask(id){store.data.tasks=store.data.tasks.filter(t=>t.id!==id); store.save(); renderAll();}
+
+// --- Tests CRUD ---
+function addTest(x){ x.id=x.id||crypto.randomUUID(); store.data.tests.push(x); store.save(); renderAll(); }
+function deleteTest(id){store.data.tests=store.data.tests.filter(t=>t.id!==id); store.save(); renderAll();}
+
+// --- Helpers ---
+function pct(n,d){return d?Math.round((n/d)*100):0}
+function fmt(d){return new Date(d).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})}
+function tasksOn(date){return store.data.tasks.filter(t=>t.date===date)}
+function dayProgress(date){const list=tasksOn(date); const done=list.filter(t=>t.done).length; return {done,total:list.length,p:pct(done,list.length)}}
+function monthRange(ym){const [y,m]=ym.split('-').map(Number); const d0=new Date(y,m-1,1);const d1=new Date(y,m,0);return {start:d0,end:d1}}
+function tasksInMonth(ym){const {start,end}=monthRange(ym); const s=start.toISOString().slice(0,10), e=end.toISOString().slice(0,10); return store.data.tasks.filter(t=>t.date>=s && t.date<=e)}
+function monthProgress(ym){const list=tasksInMonth(ym); const done=list.filter(t=>t.done).length; return {done,total:list.length,p:pct(done,list.length)}}
+function calcStreak(){const days=new Set(store.data.tasks.filter(t=>t.done).map(t=>t.date)); let cur=new Date(); let count=0; while(true){ const iso=cur.toISOString().slice(0,10); if(days.has(iso)){count++; cur.setDate(cur.getDate()-1)} else break;} return count}
+
+// Weighted overall
+function overallWeighted(){
+  const cats=['DSA','System Design','MERN','DevOps','Core CS'];
+  const w=store.data.profile.weights; let totalW=0, acc=0; cats.forEach(c=>{ totalW+=Number(w[c]||0) }); if(!totalW) return 0;
+  cats.forEach(c=>{ const tasks=store.data.tasks.filter(t=>t.category===c); const p=pct(tasks.filter(t=>t.done).length, tasks.length); acc += (p*(w[c]||0))/totalW; });
+  return Math.round(acc);
+}
+
+// --- Rendering ---
+function renderDashboard(){
+  bindProfileInputs();
+  const day = dayProgress(todayISO()); $('#kDay').textContent = day.p+'%';
+  const ym = $('#monthPicker').value || new Date().toISOString().slice(0,7); $('#monthPicker').value=ym;
+  const mp = monthProgress(ym); $('#kMonth').textContent = mp.p+'%'; $('#monthDone').textContent=mp.done; $('#monthTotal').textContent=mp.total; $('#monthBar').style.width = mp.p+'%';
+  const streak = calcStreak(); $('#kStreak').textContent=streak;
+  const overall = overallWeighted(); $('#kOverall').textContent = overall+'%'; $('#overallBar').style.width = overall+'%';
+  renderCalendar(); renderToday();
+}
+
+function renderCalendar(){
+  const ym = $('#monthPicker').value; const {start,end}=monthRange(ym); const cal=$('#calendar'); cal.innerHTML='';
+  const pad=(start.getDay()+6)%7; for(let i=0;i<pad;i++){ cal.appendChild(document.createElement('div')); }
+  for(let d=1; d<=end.getDate(); d++){
+    const iso=new Date(start.getFullYear(),start.getMonth(),d).toISOString().slice(0,10);
+    const box=document.createElement('div'); box.className='day'; if(iso===todayISO()) box.classList.add('today');
+    const list=store.data.tasks.filter(t=>t.date===iso); const p=pct(list.filter(t=>t.done).length,list.length);
+    box.innerHTML=`<span>${d}</span><div class="mini" style="width:${p}%"></div>`; box.title=`${fmt(iso)} — ${p}%`;
+    box.addEventListener('click',()=> openTaskModal({date:iso})); cal.appendChild(box);
+  }
+}
+
+function renderToday(){
+  const holder=$('#todayTasks'); holder.innerHTML=''; const filter=$('#filterCat').value; const term=$('#searchTask').value.toLowerCase();
+  let list=tasksOn(todayISO()); if(filter!=='all') list=list.filter(t=>t.category===filter); if(term) list=list.filter(t=>t.title.toLowerCase().includes(term));
+  if(!list.length){ holder.innerHTML='<div class="hint">No tasks for today. Add one! 👍</div>'; }
+  list.sort((a,b)=> (a.done===b.done?0:a.done?1:-1));
+  for(const t of list){ holder.appendChild(taskItem(t)); }
+}
+
+function renderAllTasks(){
+  const holder=$('#allTasks'); holder.innerHTML='';
+  const term=$('#tSearchAll').value.toLowerCase(); const cat=$('#tFilterCatAll').value; const sort=$('#tSort').value;
+  let list=[...store.data.tasks]; if(cat!=='all') list=list.filter(t=>t.category===cat); if(term) list=list.filter(t=>t.title.toLowerCase().includes(term));
+  if(sort==='title') list.sort((a,b)=>a.title.localeCompare(b.title)); if(sort==='status') list.sort((a,b)=> Number(a.done)-Number(b.done)); else if(sort==='date') list.sort((a,b)=> a.date.localeCompare(b.date));
+  for(const t of list){ holder.appendChild(taskItem(t,true)); }
+}
+
+function taskItem(t,showDate=false){
+  const el=document.createElement('div'); el.className='task'; if(t.done) el.classList.add('done');
+  el.innerHTML=`<input type="checkbox" ${t.done?'checked':''}/>
+  <div><div style="font-weight:800">${t.title}</div><div class="hint">${showDate?fmt(t.date)+' • ':''}${t.notes||''}</div></div>
+  <span class="tag">${t.category}</span>
+  <div class="task-actions"><button title="Edit">•••</button> <button title="Delete">✕</button></div>`;
+  const [chk, , , actions]=el.children;
+  chk.addEventListener('change',()=> updateTask(t.id,{done:chk.checked}));
+  el.addEventListener('click',e=>{ if(e.target.tagName==='BUTTON'||e.target===chk) return; chk.checked=!chk.checked; chk.dispatchEvent(new Event('change'))});
+  const [editBtn, delBtn]=actions.querySelectorAll('button');
+  editBtn.addEventListener('click',e=>{e.stopPropagation(); openTaskModal(t)});
+  delBtn.addEventListener('click',e=>{e.stopPropagation(); if(confirm('Delete task?')) deleteTask(t.id)});
+  return el;
+}
+
+function renderTests(){
+  const list=[...store.data.tests].sort((a,b)=> (a.date||'').localeCompare(b.date||'')); $('#testsCount').textContent=list.length;
+  const scores=list.map(x=> (Number(x.score)/Math.max(1,Number(x.total||100)))*100 );
+  const avg=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0; const best=scores.length?Math.round(Math.max(...scores)):0; const last=scores.length?Math.round(scores[scores.length-1]):0;
+  $('#avgScore').textContent=avg; $('#bestScore').textContent=best; $('#lastScore').textContent=last;
+  const holder=$('#testsList'); holder.innerHTML=''; for(const x of list){ const wrap=document.createElement('div'); const p=Math.round((x.score/Math.max(1,x.total||100))*100);
+    wrap.className='task'; wrap.innerHTML=`<div class="tag">${p}%</div><div><div style="font-weight:800">${x.name||'Test'}</div><div class="hint">${x.date?fmt(x.date):''} • ${x.score}/${x.total||100}</div></div><span></span><div class="task-actions"><button title="Delete">✕</button></div>`; wrap.querySelector('button').addEventListener('click',()=>{ if(confirm('Delete test?')) deleteTest(x.id)}); holder.appendChild(wrap) }
+  drawTestChart(list);
+}
+
+// --- Charts (vanilla canvas)
+function drawTestChart(list){ const ctx=$('#testChart').getContext('2d'); const w=ctx.canvas.width=ctx.canvas.clientWidth; const h=ctx.canvas.height=ctx.canvas.clientHeight; ctx.clearRect(0,0,w,h); ctx.strokeStyle='rgba(207,224,255,.35)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(30,10); ctx.lineTo(30,h-20); ctx.lineTo(w-10,h-20); ctx.stroke(); const pts=list.map((x,i)=>{const p=(x.score/Math.max(1,x.total||100))*100; return{ x:30+(i*(w-50)/Math.max(1,list.length-1)), y:(h-20)-(p*(h-40)/100), p } }); if(!pts.length) return; ctx.beginPath(); ctx.strokeStyle='var(--accent)'; ctx.lineWidth=2; pts.forEach((pt,i)=>{ i?ctx.lineTo(pt.x,pt.y):ctx.moveTo(pt.x,pt.y)}); ctx.stroke(); ctx.fillStyle='var(--accent2)'; pts.forEach(pt=>{ ctx.beginPath(); ctx.arc(pt.x,pt.y,3,0,Math.PI*2); ctx.fill(); }); }
+
+function drawBurndown(){ const ctx=$('#burndown').getContext('2d'); const w=ctx.canvas.width=ctx.canvas.clientWidth; const h=ctx.canvas.height=ctx.canvas.clientHeight; ctx.clearRect(0,0,w,h); ctx.strokeStyle='rgba(207,224,255,.35)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(30,10); ctx.lineTo(30,h-20); ctx.lineTo(w-10,h-20); ctx.stroke(); const ym=$('#monthPicker').value; const {start,end}=monthRange(ym); const days=end.getDate(); let ideal=[], actual=[]; for(let d=0; d<days; d++){ const iso=new Date(start.getFullYear(),start.getMonth(),d+1).toISOString().slice(0,10); const list=store.data.tasks.filter(t=>t.date===iso); const remaining=list.filter(t=>!t.done).length; actual.push(remaining); } const total=store.data.tasks.filter(t=> t.date>=start.toISOString().slice(0,10) && t.date<=end.toISOString().slice(0,10)).length; for(let i=0;i<days;i++){ ideal.push(total - (total*(i/(days-1)))); }
+  const toPts=(arr)=> arr.map((v,i)=>({x:30+(i*(w-50)/Math.max(1,days-1)), y:(h-20)-( ( (total? (total-v)/total:0) )*(h-40)) }));
+  const ptsI=toPts(ideal), ptsA=toPts(actual);
+  ctx.beginPath(); ctx.strokeStyle='var(--muted)'; ctx.lineWidth=1.5; ptsI.forEach((p,i)=>{i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)}); ctx.stroke();
+  ctx.beginPath(); ctx.strokeStyle='var(--accent)'; ctx.lineWidth=2; ptsA.forEach((p,i)=>{i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)}); ctx.stroke();
+}
+
+function drawCategory(){ const ctx=$('#categoryChart').getContext('2d'); const w=ctx.canvas.width=ctx.canvas.clientWidth; const h=ctx.canvas.height=ctx.canvas.clientHeight; ctx.clearRect(0,0,w,h); const cats=['DSA','System Design','MERN','DevOps','Core CS','React Native','AI/ML','Routine']; const pad=40; const bw=(w-60)/cats.length; ctx.strokeStyle='rgba(207,224,255,.35)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(30,10); ctx.lineTo(30,h-20); ctx.lineTo(w-10,h-20); ctx.stroke(); cats.forEach((c,i)=>{ const arr=store.data.tasks.filter(t=>t.category===c); const p=pct(arr.filter(t=>t.done).length, arr.length); const x=30+i*bw+10; const y=(h-20)-(p*(h-40)/100); const bh=(p*(h-40)/100); ctx.fillStyle='var(--accent)'; ctx.fillRect(x,y, Math.max(18,bw-20), bh); ctx.fillStyle='rgba(207,224,255,.7)'; ctx.font='11px system-ui'; ctx.save(); ctx.translate(x+Math.max(18,bw-20)/2, h-8); ctx.rotate(-Math.PI/4); ctx.textAlign='center'; ctx.fillText(c,0,0); ctx.restore(); }); }
+
+function renderAnalytics(){ const est=sum(store.data.tasks.map(t=>Number(t.est)||0)); const act=sum(store.data.tasks.map(t=>Number(t.act)||0)); $('#sumEst').textContent=est.toFixed(1); $('#sumAct').textContent=act.toFixed(1); const acc= est? Math.round(Math.min(200, (act/est)*100)) : 0; $('#accPct').textContent=acc+'%'; const onTime=store.data.tasks.filter(t=> t.done && new Date(t.date)<=new Date()).length; $('#onTime').textContent=onTime; drawBurndown(); drawCategory(); }
+
+function sum(arr){return arr.reduce((a,b)=>a+b,0)}
+
+// --- Export / Import ---
+function exportJSON(){ const blob=new Blob([JSON.stringify(store.data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='progress-hq-data.json'; a.click(); URL.revokeObjectURL(a.href); }
+$('#exportJsonBtn').addEventListener('click',exportJSON); $('#exportJsonBtn2')?.addEventListener('click',exportJSON);
+
+function importJSON(input){ const f=input.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ store.data=JSON.parse(r.result); store.save(); renderAll(); }catch(e){ alert('Invalid JSON') } }; r.readAsText(f); input.value=''; }
+$('#importFile')?.addEventListener('change',e=>importJSON(e.target)); $('#importFile2')?.addEventListener('change',e=>importJSON(e.target));
+
+function exportReport(){
+  drawTestChart(store.data.tests); drawBurndown(); drawCategory();
+  const imgTests=$('#testChart').toDataURL('image/png');
+  const imgBurn=$('#burndown').toDataURL('image/png');
+  const imgCat=$('#categoryChart').toDataURL('image/png');
+  const ym=$('#monthPicker').value; const mp=monthProgress(ym);
+  const overall=overallWeighted(); const day=dayProgress(todayISO());
+  const name=store.data.profile.name||'Progress Report';
+  const rows = store.data.tasks.slice(0,400).map(t=>`<tr><td>${t.title}</td><td>${t.category}</td><td>${t.date}</td><td>${t.est||''}</td><td>${t.act||''}</td><td>${t.done?'Yes':'No'}</td></tr>`).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${name}</title><style>body{font-family:system-ui,Segoe UI,Roboto;line-height:1.45;margin:24px;color:#111} h1,h2{margin:.2em 0} .kpi{display:inline-block;padding:8px 10px;border-radius:10px;background:#f3f6ff;margin:4px 6px;font-weight:700} table{border-collapse:collapse;width:100%;margin-top:12px} td,th{border:1px solid #ddd;padding:8px} th{background:#fafafa;text-align:left} img{max-width:100%;border:1px solid #eee;border-radius:8px} .small{font-size:12px;color:#666}</style></head><body>
+  <h1>${name} — Report</h1>
+  <div class="small">Generated: ${new Date().toLocaleString()}</div>
+  <h2>KPIs</h2>
+  <div class="kpi">Overall ${overall}%</div>
+  <div class="kpi">Month ${mp.p}%</div>
+  <div class="kpi">Today ${day.p}%</div>
+  <h2>Charts</h2>
+  <h3>Tests</h3><img src="${imgTests}"/>
+  <h3>Burndown</h3><img src="${imgBurn}"/>
+  <h3>Category Completion</h3><img src="${imgCat}"/>
+  <h2>Recent Tasks</h2>
+  <table><thead><tr><th>Title</th><th>Category</th><th>Date</th><th>Est(h)</th><th>Act(h)</th><th>Done</th></tr></thead><tbody>${rows}</tbody></table>
+</body></html>`;
+  const blob=new Blob([html],{type:'text/html'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='progress-report.html'; a.click(); URL.revokeObjectURL(a.href);
+}
+$('#exportReportBtn')?.addEventListener('click',exportReport);
+$('#printBtn')?.addEventListener('click',()=>window.print());
+
+// --- Modals ---
+let editingTaskId=null;
+function openTaskModal(pref={}){ editingTaskId=pref.id||null; $('#fTitle').value=pref.title||''; $('#fDate').value=pref.date||todayISO(); $('#fCat').value=pref.category||'DSA'; $('#fEst').value=pref.est||''; $('#fAct').value=pref.act||''; $('#fNotes').value=pref.notes||''; $('#taskDialog').showModal(); }
+$('#saveTask')?.addEventListener('click',e=>{ e.preventDefault(); const t={ id:editingTaskId||undefined, title:$('#fTitle').value.trim(), date:$('#fDate').value, category:$('#fCat').value, est:Number($('#fEst').value)||0, act:Number($('#fAct').value)||0, notes:$('#fNotes').value.trim(), done: editingTaskId? store.data.tasks.find(x=>x.id===editingTaskId)?.done:false }; if(!t.title||!t.date) return alert('Title and date required'); if(editingTaskId){ updateTask(editingTaskId,t) } else { addTask(t) } $('#taskDialog').close(); });
+
+function openTestModal(){ $('#xName').value=''; $('#xDate').value=todayISO(); $('#xScore').value=''; $('#xTotal').value='100'; $('#testDialog').showModal(); }
+$('#saveTest')?.addEventListener('click',e=>{ e.preventDefault(); const x={name:$('#xName').value.trim(), date:$('#xDate').value, score:Number($('#xScore').value)||0, total:Number($('#xTotal').value)||100}; addTest(x); $('#testDialog').close(); });
+$('#addTaskBtn')?.addEventListener('click',()=>openTaskModal()); $('#addTestBtn')?.addEventListener('click',()=>openTestModal());
+
+// Filters/listeners
+$('#filterCat')?.addEventListener('change',renderToday); $('#searchTask')?.addEventListener('input',renderToday); $('#monthPicker')?.addEventListener('change',()=>{ renderDashboard(); renderAnalytics(); });
+$('#tSearchAll')?.addEventListener('input',renderAllTasks); $('#tFilterCatAll')?.addEventListener('change',renderAllTasks); $('#tSort')?.addEventListener('change',renderAllTasks);
+
+// Reset
+function hardReset(){ if(confirm('This will clear ALL data. Proceed?')){ localStorage.removeItem(store.key); location.reload(); } }
+$('#resetBtn')?.addEventListener('click',hardReset); $('#resetBtn2')?.addEventListener('click',hardReset);
+
+// Seed sample data on first run
+if(!store.data.tasks.length && !store.data.tests.length){
+  const d=todayISO();
+  addTask({title:'DSA: Sliding Window (6 Qs)', date:d, category:'DSA', est:2, act:0, notes:'patterns + min window', done:false});
+  addTask({title:'System Design: URL Shortener', date:d, category:'System Design', est:2, act:0, notes:'APIs + schema', done:false});
+  addTask({title:'MERN: JWT Auth (TS)', date:d, category:'MERN', est:2, act:0, notes:'access+refresh tokens', done:false});
+  addTest({name:'Weekly DSA Mock', date:d, score:72, total:100});
+}
+
+function renderAll(){ renderDashboard(); renderAllTasks(); renderTests(); renderAnalytics(); }
+renderAll();
+/* ORIGINAL APP LOGIC END */
+</script>
+</body>
+</html>
